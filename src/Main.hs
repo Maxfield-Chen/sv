@@ -18,11 +18,13 @@ window =
 simulationStepsPerSecond = 3
 
 goals = S.singleton (Coord 5 5)
+startCoord = S.singleton (Coord 0 0)
 
 visualize = visualizePath pixelScale
 
 model :: (Bool, BFS)
-model = (True, emptyBFS { neighbors = S.singleton (Coord 0 0), goal = goals })
+model =
+  (True, emptyBFS { neighbors = startCoord, start = startCoord, goal = goals })
 
 stepModel :: ViewPort -> Float -> (Bool, BFS) -> (Bool, BFS)
 stepModel _ _ (done, bfs) = if done then runState bfsStep bfs else (done, bfs)

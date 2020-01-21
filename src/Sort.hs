@@ -8,13 +8,14 @@ import           Control.Monad.State
 boardSize = 100
 unseenColor = white
 
-data BFS = BFS {    seen :: BoardStateMap,
+data BFS = BFS {    start :: BoardStateMap,
+                    seen :: BoardStateMap,
                     neighbors :: BoardStateMap,
                     goal :: BoardStateMap} deriving Show
 
-emptyBFS = BFS S.empty S.empty S.empty
+emptyBFS = BFS S.empty S.empty S.empty S.empty
 
-data BoardState =  Seen | Goal deriving (Show, Eq)
+data BoardState =  Start | Seen | Goal deriving (Show, Eq)
 type BoardStateMap = S.Set (Coord Int)
 
 data Coord a = Coord a a deriving (Show, Eq, Ord)
@@ -28,21 +29,29 @@ instance Applicative Coord where
 
 
 btc :: BoardState -> Color
-btc Seen = black
-btc Goal = red
+btc Start = blue
+btc Seen  = black
+btc Goal  = red
+
+bts :: BoardState -> Float -> Float -> Picture
+bts Start = rectangleSolid
+bts Seen  = rectangleWire
+bts Goal  = rectangleSolid
 
 
 pathToVisual :: Float -> BoardState -> Coord Int -> Picture
 pathToVisual scale colo (Coord x y) = translate
   (fromIntegral x * scale)
   (fromIntegral y * scale)
-  (color (btc colo) (rectangleWire scale scale))
+  (color (btc colo) (bts colo scale scale))
 
 visualizePath :: Float -> (Bool, BFS) -> Picture
-visualizePath scale (_, bfs) = pictures $ exploredPictures ++ goalPictures
+visualizePath scale (_, bfs) =
+  pictures $ startPictures ++ seenPictures ++ goalPictures
  where
-  goalPictures     = map (pathToVisual scale Goal) ((S.elems . goal) bfs)
-  exploredPictures = map (pathToVisual scale Seen) ((S.elems . seen) bfs)
+  startPictures = map (pathToVisual scale Start) ((S.elems . start) bfs)
+  seenPictures  = map (pathToVisual scale Seen) ((S.elems . seen) bfs)
+  goalPictures  = map (pathToVisual scale Goal) ((S.elems . goal) bfs)
 
 coordNeighbors :: [Coord Int] -> Coord Int -> [Coord Int]
 coordNeighbors ds c = map (\d -> (+) <$> c <*> d) ds
