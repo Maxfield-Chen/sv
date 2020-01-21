@@ -12,6 +12,8 @@ data BFS = BFS {    seen :: BoardStateMap,
                     neighbors :: [Coord Int],
                     goal :: [Coord Int]} deriving Show
 
+emptyBFS = BFS M.empty [] []
+
 data BoardState =  Seen | Goal deriving (Show, Eq)
 type BoardStateMap = M.Map (Coord Int) BoardState
 
@@ -29,9 +31,16 @@ btc :: BoardState -> Color
 btc Seen = black
 btc Goal = red
 
-visualizePath :: Float -> BoardStateMap -> Picture
-visualizePath scale m = pictures $ M.foldrWithKey pathToVisual [] m
+visualizePath :: Float -> (Bool, BFS) -> Picture
+visualizePath scale (_, bfs) = pictures $ exploredPictures ++ goalPictures
  where
+  goalPictures = map
+    (\(Coord x y) -> translate (fromIntegral x * scale)
+                               (fromIntegral y * scale)
+                               (color (btc Goal) (rectangleSolid scale scale))
+    )
+    (goal bfs)
+  exploredPictures = M.foldrWithKey pathToVisual [] (seen bfs)
   pathToVisual (Coord x y) bs ret =
     translate (fromIntegral x * scale)
               (fromIntegral y * scale)
@@ -69,7 +78,5 @@ bfsGetNeighbors = state
 bfsStep :: State BFS Bool
 bfsStep = do
   done <- bfsMarkSeen
-  bfsGetNeighbors
+  unless done bfsGetNeighbors
   pure done
-
-
