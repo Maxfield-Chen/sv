@@ -17,7 +17,7 @@ window =
 
 unseenColor = greyN 0.9
 
-simulationStepsPerSecond = 3
+simulationStepsPerSecond = 1
 
 goal = [S.Coord 5 5]
 

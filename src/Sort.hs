@@ -6,7 +6,7 @@ import qualified Data.Map                      as M
 import           Control.Monad.State
 
 boardSize = 100
-unseenColor = greyN 0.5
+unseenColor = white
 
 data BFS = BFS {    seen :: BoardStateMap,
                     neighbors :: [Coord Int],
@@ -31,17 +31,25 @@ btc :: BoardState -> Color
 btc Seen = black
 btc Goal = red
 
+
 pathToVisual :: Float -> BoardState -> Coord Int -> Picture
 pathToVisual scale colo (Coord x y) = translate
   (fromIntegral x * scale)
   (fromIntegral y * scale)
-  (color (btc colo) (rectangleSolid scale scale))
+  (color (btc colo) (rectangleWire scale scale))
 
 visualizePath :: Float -> (Bool, BFS) -> Picture
 visualizePath scale (_, bfs) = pictures $ exploredPictures ++ goalPictures
  where
   goalPictures     = map (pathToVisual scale Goal) (goal bfs)
   exploredPictures = map (pathToVisual scale Seen) (M.keys (seen bfs))
+  grid             = gridVisual scale
+
+gridVisual :: Float -> [Picture]
+gridVisual gridSize =
+  let botPoints =
+          take 100 $ iterate (\(x, y) -> ((x + gridSize), y)) (0.0, 0.0)
+  in  map (\(x, y) -> Line [(x, y), (x, y + gridSize * 100)]) botPoints
 
 coordNeighbors :: [Coord Int] -> Coord Int -> [Coord Int]
 coordNeighbors ds c = map (\d -> (+) <$> c <*> d) ds
