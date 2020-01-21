@@ -8,15 +8,15 @@ import           Control.Monad.State
 boardSize = 100
 unseenColor = white
 
-data BFS = BFS {    start :: BoardStateMap,
-                    seen :: BoardStateMap,
-                    neighbors :: BoardStateMap,
-                    goal :: BoardStateMap} deriving Show
+data BFS = BFS {    start :: BoardStateSet,
+                    seen :: BoardStateSet,
+                    neighbors :: BoardStateSet,
+                    goal :: BoardStateSet} deriving Show
 
 emptyBFS = BFS S.empty S.empty S.empty S.empty
 
 data BoardState =  Start | Seen | Goal deriving (Show, Eq)
-type BoardStateMap = S.Set (Coord Int)
+type BoardStateSet = S.Set (Coord Int)
 
 data Coord a = Coord a a deriving (Show, Eq, Ord)
 
