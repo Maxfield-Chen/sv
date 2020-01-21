@@ -31,21 +31,17 @@ btc :: BoardState -> Color
 btc Seen = black
 btc Goal = red
 
+pathToVisual :: Float -> BoardState -> Coord Int -> Picture
+pathToVisual scale colo (Coord x y) = translate
+  (fromIntegral x * scale)
+  (fromIntegral y * scale)
+  (color (btc colo) (rectangleSolid scale scale))
+
 visualizePath :: Float -> (Bool, BFS) -> Picture
 visualizePath scale (_, bfs) = pictures $ exploredPictures ++ goalPictures
  where
-  goalPictures = map
-    (\(Coord x y) -> translate (fromIntegral x * scale)
-                               (fromIntegral y * scale)
-                               (color (btc Goal) (rectangleSolid scale scale))
-    )
-    (goal bfs)
-  exploredPictures = M.foldrWithKey pathToVisual [] (seen bfs)
-  pathToVisual (Coord x y) bs ret =
-    translate (fromIntegral x * scale)
-              (fromIntegral y * scale)
-              (color (btc bs) (rectangleSolid scale scale))
-      : ret
+  goalPictures     = map (pathToVisual scale Goal) (goal bfs)
+  exploredPictures = map (pathToVisual scale Seen) (M.keys (seen bfs))
 
 coordNeighbors :: [Coord Int] -> Coord Int -> [Coord Int]
 coordNeighbors ds c = map (\d -> (+) <$> c <*> d) ds
