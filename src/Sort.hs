@@ -2,20 +2,20 @@ module Sort where
 
 import           Data.List
 import           Graphics.Gloss
-import qualified Data.Map                      as M
+import qualified Data.Set                      as S
 import           Control.Monad.State
 
 boardSize = 100
 unseenColor = white
 
 data BFS = BFS {    seen :: BoardStateMap,
-                    neighbors :: [Coord Int],
-                    goal :: [Coord Int]} deriving Show
+                    neighbors :: BoardStateMap,
+                    goal :: BoardStateMap} deriving Show
 
-emptyBFS = BFS M.empty [] []
+emptyBFS = BFS S.empty S.empty S.empty
 
 data BoardState =  Seen | Goal deriving (Show, Eq)
-type BoardStateMap = M.Map (Coord Int) BoardState
+type BoardStateMap = S.Set (Coord Int)
 
 data Coord a = Coord a a deriving (Show, Eq, Ord)
 
@@ -41,32 +41,26 @@ pathToVisual scale colo (Coord x y) = translate
 visualizePath :: Float -> (Bool, BFS) -> Picture
 visualizePath scale (_, bfs) = pictures $ exploredPictures ++ goalPictures
  where
-  goalPictures     = map (pathToVisual scale Goal) (goal bfs)
-  exploredPictures = map (pathToVisual scale Seen) (M.keys (seen bfs))
-  grid             = gridVisual scale
-
-gridVisual :: Float -> [Picture]
-gridVisual gridSize =
-  let botPoints =
-          take 100 $ iterate (\(x, y) -> ((x + gridSize), y)) (0.0, 0.0)
-  in  map (\(x, y) -> Line [(x, y), (x, y + gridSize * 100)]) botPoints
+  goalPictures     = map (pathToVisual scale Goal) ((S.elems . goal) bfs)
+  exploredPictures = map (pathToVisual scale Seen) ((S.elems . seen) bfs)
 
 coordNeighbors :: [Coord Int] -> Coord Int -> [Coord Int]
 coordNeighbors ds c = map (\d -> (+) <$> c <*> d) ds
 
 cardinalDeltas = [Coord 1 0, Coord (-1) 0, Coord 0 1, Coord 0 (-1)]
 
-cardinalNeighbors :: Coord Int -> [Coord Int]
-cardinalNeighbors = coordNeighbors cardinalDeltas
+cardinalNeighbors :: Coord Int -> S.Set (Coord Int) -> S.Set (Coord Int)
+cardinalNeighbors c r =
+  let newNeighbors = coordNeighbors cardinalDeltas c
+  in  foldr S.insert r newNeighbors
 
 -- Marks all current neighbors as seen. Does not change the neighbor list.
 -- Returns True if a goal has been seen, and False otherwise.
 bfsMarkSeen :: State BFS Bool
 bfsMarkSeen = state
   (\s ->
-    let markSeen c = M.insert c Seen
-        newSeen   = foldr markSeen (seen s) (neighbors s)
-        foundGoal = [] /= intersect (goal s) (M.keys newSeen)
+    let newSeen   = foldr S.insert (seen s) (neighbors s)
+        foundGoal = newSeen `S.disjoint` goal s
     in  (foundGoal, s { seen = newSeen })
   )
 
@@ -74,13 +68,12 @@ bfsMarkSeen = state
 bfsGetNeighbors :: State BFS ()
 bfsGetNeighbors = state
   (\s ->
-    let newNeighbors =
-            concatMap cardinalNeighbors (neighbors s) \\ M.keys (seen s)
+    let newNeighbors = S.foldr cardinalNeighbors S.empty (neighbors s)
     in  ((), s { neighbors = newNeighbors })
   )
 
 bfsStep :: State BFS Bool
 bfsStep = do
-  done <- bfsMarkSeen
-  unless done bfsGetNeighbors
-  pure done
+  continue <- bfsMarkSeen
+  when continue bfsGetNeighbors
+  pure continue

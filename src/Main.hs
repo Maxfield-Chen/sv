@@ -1,12 +1,12 @@
 module Main where
 
-import qualified Sort                          as S
-import qualified Data.Map                      as M
+import           Sort
+import qualified Data.Set                      as S
 import           Graphics.Gloss
 import           Graphics.Gloss.Data.ViewPort
 import           Control.Monad.State
 
-pixelScale = 10.0
+pixelScale = 40.0
 
 displayWidth = 1500
 displayHeight = 1500
@@ -15,21 +15,22 @@ window :: Display
 window =
   InWindow "Sorting Visualization" (displayWidth, displayHeight) (10, 10)
 
-unseenColor = greyN 0.9
+simulationStepsPerSecond = 3
 
-simulationStepsPerSecond = 1
+goals = S.singleton (Coord 5 5)
 
-goal = [S.Coord 5 5]
+visualize = visualizePath pixelScale
 
-visualize = S.visualizePath pixelScale
+model :: (Bool, BFS)
+model = (True, emptyBFS { neighbors = S.singleton (Coord 0 0), goal = goals })
 
-model :: (Bool, S.BFS)
-model = (False, S.emptyBFS { S.neighbors = [S.Coord 0 0], S.goal = goal })
-
-stepModel :: ViewPort -> Float -> (Bool, S.BFS) -> (Bool, S.BFS)
-stepModel _ _ (done, bfs) =
-  if done then (done, bfs) else runState S.bfsStep bfs
+stepModel :: ViewPort -> Float -> (Bool, BFS) -> (Bool, BFS)
+stepModel _ _ (done, bfs) = if done then runState bfsStep bfs else (done, bfs)
 
 main :: IO ()
-main =
-  simulate window unseenColor simulationStepsPerSecond model visualize stepModel
+main = simulate window
+                Sort.unseenColor
+                simulationStepsPerSecond
+                model
+                visualize
+                stepModel
