@@ -12,8 +12,7 @@ displayWidth = 1500
 displayHeight = 1500
 
 window :: Display
-window =
-  InWindow "Sorting Visualization" (displayWidth, displayHeight) (10, 10)
+window = InWindow "Search Visualization" (displayWidth, displayHeight) (10, 10)
 
 simulationStepsPerSecond = 3
 
