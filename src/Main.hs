@@ -1,12 +1,13 @@
 module Main where
 
-import           Search
-import qualified Data.Set                      as S
 import           Graphics.Gloss
 import           Graphics.Gloss.Data.ViewPort
+import qualified Data.Set                      as S
 import           Control.Monad.State
+import           Search
+import           Bfs
 
-pixelScale = 15.0
+pixelScale = 12.0
 
 displayWidth = 1500
 displayHeight = 1500
