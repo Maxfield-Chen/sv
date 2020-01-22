@@ -1,18 +1,18 @@
 module Main where
 
-import           Sort
+import           Search
 import qualified Data.Set                      as S
 import           Graphics.Gloss
 import           Graphics.Gloss.Data.ViewPort
 import           Control.Monad.State
 
-pixelScale = 40.0
+pixelScale = 15.0
 
 displayWidth = 1500
 displayHeight = 1500
 
 window :: Display
-window = InWindow "Search Visualization" (displayWidth, displayHeight) (10, 10)
+window = InWindow "Search Visualization" (displayWidth, displayHeight) (0, 0)
 
 simulationStepsPerSecond = 3
 
@@ -29,9 +29,5 @@ stepModel :: ViewPort -> Float -> (Bool, BFS) -> (Bool, BFS)
 stepModel _ _ (done, bfs) = if done then runState bfsStep bfs else (done, bfs)
 
 main :: IO ()
-main = simulate window
-                Sort.unseenColor
-                simulationStepsPerSecond
-                model
-                visualize
-                stepModel
+main =
+  simulate window unseenColor simulationStepsPerSecond model visualize stepModel

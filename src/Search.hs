@@ -1,4 +1,4 @@
-module Sort where
+module Search where
 
 import           Data.List
 import           Graphics.Gloss
